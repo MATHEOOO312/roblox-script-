@@ -438,7 +438,7 @@ resetBtn.MouseButton1Click:Connect(function()
 end)
 local godMode = false
 local godBtn = Instance.new("TextButton", frame)
-godBtn.Text = "God Mod (Beta) : OFF"
+godBtn.Text = "God Mode (Beta) : OFF"
 godBtn.Size = UDim2.new(0.8, 0, 0, 35)
 godBtn.Position = UDim2.new(0.1, 0, 0, 630)
 godBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
@@ -470,7 +470,7 @@ end)
 
 godBtn.MouseButton1Click:Connect(function()
 	godMode = not godMode
-	godBtn.Text = "God Mod (Beta) : " .. (godMode and "ON" or "OFF")
+	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
 	if godMode then applyGodMode() end
 end)
 
