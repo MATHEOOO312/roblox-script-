@@ -364,3 +364,4 @@ RunService.RenderStepped:Connect(function()
 	if espEnabled then
 		updateEsp()
 	end
+end)
