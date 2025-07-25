@@ -1,0 +1,366 @@
+local player = game.Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local mouse = player:GetMouse()
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local root = character:WaitForChild("HumanoidRootPart")
+
+local flying = false
+local flySpeed = 50
+local jumpPower = 50
+local walkSpeed = 16
+
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "MATHEOOO312_GUI"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 320, 0, 500)
+frame.Position = UDim2.new(0, 20, 0.5, -250)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+
+local title = Instance.new("TextLabel", frame)
+title.Text = "💜|MATHEOOO312 HUB"
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold
+title.TextScaled = true
+
+local function createInput(name, yPos, default, color, callback)
+	local label = Instance.new("TextLabel", frame)
+	label.Text = name
+	label.Size = UDim2.new(0.8, 0, 0, 20)
+	label.Position = UDim2.new(0.1, 0, 0, yPos)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = Color3.new(1,1,1)
+	label.Font = Enum.Font.Gotham
+	label.TextScaled = true
+
+	local input = Instance.new("TextBox", frame)
+	input.Text = tostring(default)
+	input.Size = UDim2.new(0.8, 0, 0, 30)
+	input.Position = UDim2.new(0.1, 0, 0, yPos + 20)
+	input.BackgroundColor3 = color
+	input.TextColor3 = Color3.new(1,1,1)
+	input.Font = Enum.Font.GothamBold
+	input.TextScaled = true
+	input.ClearTextOnFocus = false
+	Instance.new("UICorner", input).CornerRadius = UDim.new(0, 8)
+
+	input.FocusLost:Connect(function()
+		local val = tonumber(input.Text)
+		if val then
+			callback(val)
+		else
+			input.Text = tostring(default)
+		end
+	end)
+end
+
+createInput("Jump Power", 40, jumpPower, Color3.fromRGB(255,100,100), function(val)
+	jumpPower = math.clamp(val, 0, 500)
+	humanoid.JumpPower = jumpPower
+end)
+
+createInput("Walk Speed", 90, walkSpeed, Color3.fromRGB(100,255,100), function(val)
+	walkSpeed = math.clamp(val, 0, 200)
+	humanoid.WalkSpeed = walkSpeed
+end)
+
+createInput("Fly Speed", 140, flySpeed, Color3.fromRGB(100,100,255), function(val)
+	flySpeed = math.clamp(val, 0, 300)
+end)
+
+createInput("Size", 190, 1, Color3.fromRGB(255,200,100), function(val)
+	local scale = math.clamp(val, 0.2, 10)
+	for _, part in ipairs(character:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.Size = part.Size * scale
+		end
+	end
+	-- Recentre la hitbox et le personnage
+	character:SetPrimaryPartCFrame(character:GetPrimaryPartCFrame())
+end)
+
+-- Fly button
+local flyBtn = Instance.new("TextButton", frame)
+flyBtn.Text = "Fly : OFF"
+flyBtn.Size = UDim2.new(0.8, 0, 0, 35)
+flyBtn.Position = UDim2.new(0.1, 0, 0, 240)
+flyBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 255)
+flyBtn.TextColor3 = Color3.new(1, 1, 1)
+flyBtn.Font = Enum.Font.GothamBold
+flyBtn.TextScaled = true
+Instance.new("UICorner", flyBtn).CornerRadius = UDim.new(0, 8)
+
+local flyVelocity
+local function toggleFly()
+	flying = not flying
+	if flying then
+		flyBtn.Text = "Fly : ON"
+		flyVelocity = Instance.new("BodyVelocity")
+		flyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+		flyVelocity.Velocity = Vector3.zero
+		flyVelocity.Parent = root
+	else
+		flyBtn.Text = "Fly : OFF"
+		if flyVelocity then
+			flyVelocity:Destroy()
+			flyVelocity = nil
+		end
+	end
+end
+flyBtn.MouseButton1Click:Connect(toggleFly)
+
+RunService.RenderStepped:Connect(function()
+	if flying and flyVelocity then
+		local move = Vector3.zero
+		if UIS:IsKeyDown(Enum.KeyCode.W) then move += workspace.CurrentCamera.CFrame.LookVector end
+		if UIS:IsKeyDown(Enum.KeyCode.S) then move -= workspace.CurrentCamera.CFrame.LookVector end
+		if UIS:IsKeyDown(Enum.KeyCode.A) then move -= workspace.CurrentCamera.CFrame.RightVector end
+		if UIS:IsKeyDown(Enum.KeyCode.D) then move += workspace.CurrentCamera.CFrame.RightVector end
+		if UIS:IsKeyDown(Enum.KeyCode.Space) then move += Vector3.new(0, 1, 0) end
+		if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then move -= Vector3.new(0, 1, 0) end
+		if move.Magnitude > 0 then
+			flyVelocity.Velocity = move.Unit * flySpeed
+		else
+			flyVelocity.Velocity = Vector3.zero
+		end
+	end
+end)
+
+mouse.Button1Down:Connect(function()
+	if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
+		if mouse.Target then
+			root.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 5, 0))
+		end
+	end
+end)
+
+player.CharacterAdded:Connect(function(char)
+	character = char
+	humanoid = character:WaitForChild("Humanoid")
+	root = character:WaitForChild("HumanoidRootPart")
+	humanoid.WalkSpeed = walkSpeed
+	humanoid.JumpPower = jumpPower
+end)
+
+-- Noclip
+local noclip = false
+local noclipBtn = Instance.new("TextButton", frame)
+noclipBtn.Text = "Noclip : OFF"
+noclipBtn.Size = UDim2.new(0.8, 0, 0, 35)
+noclipBtn.Position = UDim2.new(0.1, 0, 0, 280)
+noclipBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+noclipBtn.TextColor3 = Color3.new(1, 1, 1)
+noclipBtn.Font = Enum.Font.GothamBold
+noclipBtn.TextScaled = true
+Instance.new("UICorner", noclipBtn).CornerRadius = UDim.new(0, 8)
+
+noclipBtn.MouseButton1Click:Connect(function()
+	noclip = not noclip
+	noclipBtn.Text = "Noclip : " .. (noclip and "ON" or "OFF")
+end)
+
+RunService.Stepped:Connect(function()
+	if noclip then
+		for _, part in pairs(character:GetDescendants()) do
+			if part:IsA("BasePart") and part.CanCollide == true then
+				part.CanCollide = false
+			end
+		end
+	end
+end)
+
+-- Invisible
+local function setInvisible(state)
+	for _, part in pairs(character:GetDescendants()) do
+		if part:IsA("BasePart") or part:IsA("Decal") then
+			part.Transparency = state and 1 or 0
+		end
+	end
+end
+
+local invisBtn = Instance.new("TextButton", frame)
+invisBtn.Text = "Invisible : OFF"
+invisBtn.Size = UDim2.new(0.8, 0, 0, 35)
+invisBtn.Position = UDim2.new(0.1, 0, 0, 320)
+invisBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+invisBtn.TextColor3 = Color3.new(1, 1, 1)
+invisBtn.Font = Enum.Font.GothamBold
+invisBtn.TextScaled = true
+Instance.new("UICorner", invisBtn).CornerRadius = UDim.new(0, 8)
+
+local invisible = false
+invisBtn.MouseButton1Click:Connect(function()
+	invisible = not invisible
+	invisBtn.Text = "Invisible : " .. (invisible and "ON" or "OFF")
+	setInvisible(invisible)
+end)
+
+-- Infinite Jump
+local infiniteJump = false
+local infJumpBtn = Instance.new("TextButton", frame)
+infJumpBtn.Text = "Infinite Jump : OFF"
+infJumpBtn.Size = UDim2.new(0.8, 0, 0, 35)
+infJumpBtn.Position = UDim2.new(0.1, 0, 0, 360)
+infJumpBtn.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+infJumpBtn.TextColor3 = Color3.new(1, 1, 1)
+infJumpBtn.Font = Enum.Font.GothamBold
+infJumpBtn.TextScaled = true
+Instance.new("UICorner", infJumpBtn).CornerRadius = UDim.new(0, 8)
+
+infJumpBtn.MouseButton1Click:Connect(function()
+	infiniteJump = not infiniteJump
+	infJumpBtn.Text = "Infinite Jump : " .. (infiniteJump and "ON" or "OFF")
+end)
+
+UIS.JumpRequest:Connect(function()
+	if infiniteJump then
+		humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+	end
+end)
+
+-- Rainbow Body
+local rainbow = false
+local rainbowBtn = Instance.new("TextButton", frame)
+rainbowBtn.Text = "Rainbow Body : OFF"
+rainbowBtn.Size = UDim2.new(0.8, 0, 0, 35)
+rainbowBtn.Position = UDim2.new(0.1, 0, 0, 400)
+rainbowBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 100)
+rainbowBtn.TextColor3 = Color3.new(1, 1, 1)
+rainbowBtn.Font = Enum.Font.GothamBold
+rainbowBtn.TextScaled = true
+Instance.new("UICorner", rainbowBtn).CornerRadius = UDim.new(0, 8)
+
+rainbowBtn.MouseButton1Click:Connect(function()
+	rainbow = not rainbow
+	rainbowBtn.Text = "Rainbow Body : " .. (rainbow and "ON" or "OFF")
+end)
+
+local function HSVToRGB(h, s, v)
+	local c = v * s
+	local x = c * (1 - math.abs((h / 60) % 2 - 1))
+	local m = v - c
+	local r, g, b
+	if h < 60 then r, g, b = c, x, 0
+	elseif h < 120 then r, g, b = x, c, 0
+	elseif h < 180 then r, g, b = 0, c, x
+	elseif h < 240 then r, g, b = 0, x, c
+	elseif h < 300 then r, g, b = x, 0, c
+	else r, g, b = c, 0, x end
+	return Color3.new(r + m, g + m, b + m)
+end
+
+local hue = 0
+RunService.RenderStepped:Connect(function()
+	if rainbow then
+		hue = (hue + 1) % 360
+		local color = HSVToRGB(hue, 1, 1)
+		for _, part in ipairs(character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.Color = color
+			end
+		end
+	end
+end)
+
+-- ESP
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+local espEnabled = false
+local espBtn = Instance.new("TextButton", frame)
+espBtn.Text = "ESP : OFF"
+espBtn.Size = UDim2.new(0.8, 0, 0, 35)
+espBtn.Position = UDim2.new(0.1, 0, 0, 440)
+espBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 200)
+espBtn.TextColor3 = Color3.new(1,1,1)
+espBtn.Font = Enum.Font.GothamBold
+espBtn.TextScaled = true
+Instance.new("UICorner", espBtn).CornerRadius = UDim.new(0, 8)
+
+local espBoxes = {}
+
+local function createEspBox(plr)
+	local character = plr.Character
+	if not character then return end
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	local box = Instance.new("BoxHandleAdornment")
+	box.Adornee = hrp
+	box.AlwaysOnTop = true
+	box.ZIndex = 10
+	box.Color3 = Color3.new(1, 0, 0)
+	box.Transparency = 0.5
+	box.Size = Vector3.new(2, 5, 1)
+	box.Parent = hrp
+
+	return box
+end
+
+local function removeEspBox(plr)
+	if espBoxes[plr] then
+		espBoxes[plr]:Destroy()
+		espBoxes[plr] = nil
+	end
+end
+
+local function updateEsp()
+	for _, plr in pairs(Players:GetPlayers()) do
+		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			if espEnabled then
+				if not espBoxes[plr] then
+					espBoxes[plr] = createEspBox(plr)
+				else
+					espBoxes[plr].Adornee = plr.Character.HumanoidRootPart
+				end
+			else
+				removeEspBox(plr)
+			end
+		else
+			removeEspBox(plr)
+		end
+	end
+end
+
+espBtn.MouseButton1Click:Connect(function()
+	espEnabled = not espEnabled
+	espBtn.Text = "ESP : " .. (espEnabled and "ON" or "OFF")
+	if not espEnabled then
+		for _, box in pairs(espBoxes) do
+			box:Destroy()
+		end
+		espBoxes = {}
+	end
+end)
+
+Players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function()
+		wait(1)
+		if espEnabled then
+			espBoxes[plr] = createEspBox(plr)
+		end
+	end)
+end)
+
+Players.PlayerRemoving:Connect(function(plr)
+	removeEspBox(plr)
+end)
+
+RunService.RenderStepped:Connect(function()
+	if espEnabled then
+		updateEsp()
+	end
