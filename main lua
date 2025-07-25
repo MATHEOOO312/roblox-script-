@@ -87,11 +87,11 @@ createInput("Size", 190, 1, Color3.fromRGB(255,200,100), function(val)
 			part.Size = part.Size * scale
 		end
 	end
-	-- Recentre la hitbox et le personnage
+
 	character:SetPrimaryPartCFrame(character:GetPrimaryPartCFrame())
 end)
 
--- Fly button
+
 local flyBtn = Instance.new("TextButton", frame)
 flyBtn.Text = "Fly : OFF"
 flyBtn.Size = UDim2.new(0.8, 0, 0, 35)
@@ -154,7 +154,7 @@ player.CharacterAdded:Connect(function(char)
 	humanoid.JumpPower = jumpPower
 end)
 
--- Noclip
+
 local noclip = false
 local noclipBtn = Instance.new("TextButton", frame)
 noclipBtn.Text = "Noclip : OFF"
@@ -181,7 +181,7 @@ RunService.Stepped:Connect(function()
 	end
 end)
 
--- Invisible
+
 local function setInvisible(state)
 	for _, part in pairs(character:GetDescendants()) do
 		if part:IsA("BasePart") or part:IsA("Decal") then
@@ -207,7 +207,7 @@ invisBtn.MouseButton1Click:Connect(function()
 	setInvisible(invisible)
 end)
 
--- Infinite Jump
+
 local infiniteJump = false
 local infJumpBtn = Instance.new("TextButton", frame)
 infJumpBtn.Text = "Infinite Jump : OFF"
@@ -230,7 +230,7 @@ UIS.JumpRequest:Connect(function()
 	end
 end)
 
--- Rainbow Body
+
 local rainbow = false
 local rainbowBtn = Instance.new("TextButton", frame)
 rainbowBtn.Text = "Rainbow Body : OFF"
@@ -274,7 +274,7 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- ESP
+
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -364,4 +364,67 @@ RunService.RenderStepped:Connect(function()
 	if espEnabled then
 		updateEsp()
 	end
+end)
+local aimbot = false
+local aimbotBtn = Instance.new("TextButton", frame)
+aimbotBtn.Text = "Aimbot : OFF"
+aimbotBtn.Size = UDim2.new(0.8, 0, 0, 35)
+aimbotBtn.Position = UDim2.new(0.1, 0, 0, 440)  -- juste sous le Rainbow Body
+aimbotBtn.BackgroundColor3 = Color3.fromRGB(200, 100, 255)
+aimbotBtn.TextColor3 = Color3.new(1, 1, 1)
+aimbotBtn.Font = Enum.Font.GothamBold
+aimbotBtn.TextScaled = true
+Instance.new("UICorner", aimbotBtn).CornerRadius = UDim.new(0, 8)
+
+aimbotBtn.MouseButton1Click:Connect(function()
+    aimbot = not aimbot
+    aimbotBtn.Text = "Aimbot : " .. (aimbot and "ON" or "OFF")
+  
+end)
+
+
+
+
+local teleportBtn = Instance.new("TextButton", frame)
+teleportBtn.Text = "Teleport to Player"
+teleportBtn.Size = UDim2.new(0.8, 0, 0, 35)
+teleportBtn.Position = UDim2.new(0.1, 0, 0, 480)
+teleportBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
+teleportBtn.TextColor3 = Color3.new(1, 1, 1)
+teleportBtn.Font = Enum.Font.GothamBold
+teleportBtn.TextScaled = true
+Instance.new("UICorner", teleportBtn).CornerRadius = UDim.new(0, 8)
+
+
+local playerNameBox = Instance.new("TextBox", frame)
+playerNameBox.PlaceholderText = "Enter player name"
+playerNameBox.Size = UDim2.new(0.8, 0, 0, 30)
+playerNameBox.Position = UDim2.new(0.1, 0, 0, 440)
+playerNameBox.ClearTextOnFocus = false
+playerNameBox.Text = ""
+playerNameBox.TextColor3 = Color3.new(0,0,0)
+playerNameBox.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+Instance.new("UICorner", playerNameBox).CornerRadius = UDim.new(0, 8)
+
+
+local function teleportToPlayer(targetName)
+    local targetPlayer = Players:FindFirstChild(targetName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+        end
+    else
+        print("Player not found or not connected: " .. targetName)
+    end
+end
+
+
+teleportBtn.MouseButton1Click:Connect(function()
+    local targetName = playerNameBox.Text
+    if targetName ~= "" then
+        teleportToPlayer(targetName)
+    else
+        print("Please enter a valid player name.")
+    end
 end)
