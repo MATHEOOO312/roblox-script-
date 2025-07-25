@@ -19,7 +19,7 @@ gui.Name = "MATHEOOO312_GUI"
 gui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 320, 0, 500)
+frame.Size = UDim2.new(0, 400, 0, 600)
 frame.Position = UDim2.new(0, 20, 0.5, -250)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BorderSizePixel = 0
@@ -281,90 +281,54 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 local espEnabled = false
+
 local espBtn = Instance.new("TextButton", frame)
 espBtn.Text = "ESP : OFF"
 espBtn.Size = UDim2.new(0.8, 0, 0, 35)
-espBtn.Position = UDim2.new(0.1, 0, 0, 440)
-espBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 200)
-espBtn.TextColor3 = Color3.new(1,1,1)
+espBtn.Position = UDim2.new(0.1, 0, 0, 530)  -- Ajuste selon la hauteur de tes autres boutons
+espBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 150)
+espBtn.TextColor3 = Color3.new(1, 1, 1)
 espBtn.Font = Enum.Font.GothamBold
 espBtn.TextScaled = true
 Instance.new("UICorner", espBtn).CornerRadius = UDim.new(0, 8)
 
-local espBoxes = {}
+local function toggleESP()
+    espEnabled = not espEnabled
+    espBtn.Text = "ESP : " .. (espEnabled and "ON" or "OFF")
 
-local function createEspBox(plr)
-	local character = plr.Character
-	if not character then return end
-	local hrp = character:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj:FindFirstChild("Head") and obj:IsA("Model") and obj ~= player.Character then
+            if obj:FindFirstChild("ESPLabel") then
+                obj:FindFirstChild("ESPLabel"):Destroy()
+            end
+        end
+    end
 
-	local box = Instance.new("BoxHandleAdornment")
-	box.Adornee = hrp
-	box.AlwaysOnTop = true
-	box.ZIndex = 10
-	box.Color3 = Color3.new(1, 0, 0)
-	box.Transparency = 0.5
-	box.Size = Vector3.new(2, 5, 1)
-	box.Parent = hrp
+    if espEnabled then
+        for _, target in pairs(game.Players:GetPlayers()) do
+            if target ~= player and target.Character and target.Character:FindFirstChild("Head") then
+                local head = target.Character.Head
 
-	return box
+                local tag = Instance.new("BillboardGui", head)
+                tag.Name = "ESPLabel"
+                tag.Size = UDim2.new(0, 100, 0, 40)
+                tag.StudsOffset = Vector3.new(0, 2, 0)
+                tag.AlwaysOnTop = true
+
+                local nameLabel = Instance.new("TextLabel", tag)
+                nameLabel.Size = UDim2.new(1, 0, 1, 0)
+                nameLabel.BackgroundTransparency = 1
+                nameLabel.TextColor3 = Color3.new(1, 0, 0)
+                nameLabel.Text = target.Name
+                nameLabel.TextScaled = true
+                nameLabel.Font = Enum.Font.GothamBold
+            end
+        end
+    end
 end
 
-local function removeEspBox(plr)
-	if espBoxes[plr] then
-		espBoxes[plr]:Destroy()
-		espBoxes[plr] = nil
-	end
-end
+espBtn.MouseButton1Click:Connect(toggleESP)
 
-local function updateEsp()
-	for _, plr in pairs(Players:GetPlayers()) do
-		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-			if espEnabled then
-				if not espBoxes[plr] then
-					espBoxes[plr] = createEspBox(plr)
-				else
-					espBoxes[plr].Adornee = plr.Character.HumanoidRootPart
-				end
-			else
-				removeEspBox(plr)
-			end
-		else
-			removeEspBox(plr)
-		end
-	end
-end
-
-espBtn.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	espBtn.Text = "ESP : " .. (espEnabled and "ON" or "OFF")
-	if not espEnabled then
-		for _, box in pairs(espBoxes) do
-			box:Destroy()
-		end
-		espBoxes = {}
-	end
-end)
-
-Players.PlayerAdded:Connect(function(plr)
-	plr.CharacterAdded:Connect(function()
-		wait(1)
-		if espEnabled then
-			espBoxes[plr] = createEspBox(plr)
-		end
-	end)
-end)
-
-Players.PlayerRemoving:Connect(function(plr)
-	removeEspBox(plr)
-end)
-
-RunService.RenderStepped:Connect(function()
-	if espEnabled then
-		updateEsp()
-	end
-end)
 local aimbot = false
 local aimbotBtn = Instance.new("TextButton", frame)
 aimbotBtn.Text = "Aimbot : OFF"
