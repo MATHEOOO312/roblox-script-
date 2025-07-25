@@ -19,7 +19,7 @@ gui.Name = "MATHEOOO312_GUI"
 gui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 400, 0, 600)
+frame.Size = UDim2.new(0, 400, 0, 700)
 frame.Position = UDim2.new(0, 20, 0.5, -250)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BorderSizePixel = 0
@@ -154,6 +154,33 @@ player.CharacterAdded:Connect(function(char)
 	humanoid.JumpPower = jumpPower
 end)
 
+local godMode = false
+local godBtn = Instance.new("TextButton", frame)
+godBtn.Text = "God Mode (Beta) : OFF"
+godBtn.Size = UDim2.new(0.8, 0, 0, 35)
+godBtn.Position = UDim2.new(0.1, 0, 0, 530) -- Ajuste si nécessaire
+godBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+godBtn.TextColor3 = Color3.new(1, 1, 1)
+godBtn.Font = Enum.Font.GothamBold
+godBtn.TextScaled = true
+Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 8)
+
+godBtn.MouseButton1Click:Connect(function()
+	godMode = not godMode
+	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
+
+	if godMode then
+		local char = player.Character or player.CharacterAdded:Wait()
+		local humanoid = char:WaitForChild("Humanoid")
+
+
+		humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+			if godMode and humanoid.Health < humanoid.MaxHealth then
+				humanoid.Health = humanoid.MaxHealth
+			end
+		end)
+	end
+end)
 
 local noclip = false
 local noclipBtn = Instance.new("TextButton", frame)
@@ -285,7 +312,7 @@ local espEnabled = false
 local espBtn = Instance.new("TextButton", frame)
 espBtn.Text = "ESP : OFF"
 espBtn.Size = UDim2.new(0.8, 0, 0, 35)
-espBtn.Position = UDim2.new(0.1, 0, 0, 530)  -- Ajuste selon la hauteur de tes autres boutons
+espBtn.Position = UDim2.new(0.1, 0, 0, 530)  
 espBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 150)
 espBtn.TextColor3 = Color3.new(1, 1, 1)
 espBtn.Font = Enum.Font.GothamBold
@@ -395,16 +422,55 @@ end)
 local resetBtn = Instance.new("TextButton", frame)
 resetBtn.Text = "Reset Character"
 resetBtn.Size = UDim2.new(0.8, 0, 0, 35)
-resetBtn.Position = UDim2.new(0.1, 0, 0, 530) -- Ajuste selon ta position
-resetBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+resetBtn.Position = UDim2.new(0.1, 0, 0, 580)
+resetBtn.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
 resetBtn.TextColor3 = Color3.new(1, 1, 1)
 resetBtn.Font = Enum.Font.GothamBold
 resetBtn.TextScaled = true
 Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 8)
 
 resetBtn.MouseButton1Click:Connect(function()
-	local char = player.Character
-	if char and char:FindFirstChild("Humanoid") then
-		char.Humanoid.Health = 0
+	local char = player.Character or player.CharacterAdded:Wait()
+	local humanoid = char:FindFirstChild("Humanoid")
+	if humanoid then
+		humanoid.Health = 0
 	end
 end)
+local godMode = false
+local godBtn = Instance.new("TextButton", frame)
+godBtn.Text = "God Mode (Beta) : OFF"
+godBtn.Size = UDim2.new(0.8, 0, 0, 35)
+godBtn.Position = UDim2.new(0.1, 0, 0, 630)
+godBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+godBtn.TextColor3 = Color3.new(1, 1, 1)
+godBtn.Font = Enum.Font.GothamBold
+godBtn.TextScaled = true
+Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 8)
+
+local function applyGodMode()
+	local char = player.Character
+	if not char then return end
+
+	local humanoid = char:FindFirstChild("Humanoid")
+	if not humanoid then return end
+
+	humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+		if godMode and humanoid.Health < humanoid.MaxHealth then
+			humanoid.Health = humanoid.MaxHealth
+		end
+	end)
+end
+
+player.CharacterAdded:Connect(function()
+	if godMode then
+		task.wait(1)
+		applyGodMode()
+	end
+end)
+
+godBtn.MouseButton1Click:Connect(function()
+	godMode = not godMode
+	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
+	if godMode then applyGodMode() end
+end)
+
