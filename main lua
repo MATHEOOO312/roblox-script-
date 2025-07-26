@@ -360,7 +360,7 @@ local aimbot = false
 local aimbotBtn = Instance.new("TextButton", frame)
 aimbotBtn.Text = "Aimbot : OFF"
 aimbotBtn.Size = UDim2.new(0.8, 0, 0, 35)
-aimbotBtn.Position = UDim2.new(0.1, 0, 0, 440)  -- juste sous le 
+aimbotBtn.Position = UDim2.new(0.1, 0, 0, 440)  -- juste sous le Rainbow Body
 aimbotBtn.BackgroundColor3 = Color3.fromRGB(200, 100, 255)
 aimbotBtn.TextColor3 = Color3.new(1, 1, 1)
 aimbotBtn.Font = Enum.Font.GothamBold
@@ -370,8 +370,11 @@ Instance.new("UICorner", aimbotBtn).CornerRadius = UDim.new(0, 8)
 aimbotBtn.MouseButton1Click:Connect(function()
     aimbot = not aimbot
     aimbotBtn.Text = "Aimbot : " .. (aimbot and "ON" or "OFF")
-  
+
 end)
+
+
+
 
 local teleportBtn = Instance.new("TextButton", frame)
 teleportBtn.Text = "Teleport to Player"
@@ -407,6 +410,7 @@ local function teleportToPlayer(targetName)
     end
 end
 
+
 teleportBtn.MouseButton1Click:Connect(function()
     local targetName = playerNameBox.Text
     if targetName ~= "" then
@@ -416,7 +420,7 @@ teleportBtn.MouseButton1Click:Connect(function()
     end
 end)
 local resetBtn = Instance.new("TextButton", frame)
-resetBtn.Text = "ResetCharacter"
+resetBtn.Text = "Reset Character"
 resetBtn.Size = UDim2.new(0.8, 0, 0, 35)
 resetBtn.Position = UDim2.new(0.1, 0, 0, 580)
 resetBtn.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
@@ -434,61 +438,88 @@ resetBtn.MouseButton1Click:Connect(function()
 end)
 local godMode = false
 local godBtn = Instance.new("TextButton", frame)
-godBtn.Text = "God Mod (Beta) : OFF"
+godBtn.Text = "God Mode (Beta) : OFF"
 godBtn.Size = UDim2.new(0.8, 0, 0, 35)
-godBtn.Position = UDim2.new(0.1, 0, 0, 630)
+godBtn.Position = UDim2.new(0.1, 0, 0, 530) -- Ajuste si nécessaire
 godBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
 godBtn.TextColor3 = Color3.new(1, 1, 1)
 godBtn.Font = Enum.Font.GothamBold
 godBtn.TextScaled = true
 Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 8)
 
-
-local healthConnection = nil
-
-local function applyGodMode()
-	local char = player.Character or player.CharacterAdded:Wait()
-	local humanoid = char:FindFirstChildWhichIsA("Humanoid")
-	if not humanoid then return end
-
-	--
-	if healthConnection then
-		healthConnection:Disconnect()
-	end
-
-	-- Remet la vie au max en boucle tant que God Mode actif
-	healthConnection = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
-		if godMode then
-			task.wait() -- Petite attente pour éviter bug visuel
-			if humanoid.Health < humanoid.MaxHealth then
-				humanoid.Health = humanoid.MaxHealth
-			end
-		end
-	end)
-
-
-	if godMode and humanoid.Health < humanoid.MaxHealth then
-		humanoid.Health = humanoid.MaxHealth
-	end
-end
-
-player.CharacterAdded:Connect(function()
-	if godMode then
-		task.wait(1)
-		applyGodMode()
-	end
-end)
-
 godBtn.MouseButton1Click:Connect(function()
 	godMode = not godMode
-	godBtn.Text = "God Mod (Beta) : " .. (godMode and "ON" or "OFF")
+	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
+
 	if godMode then
-		applyGodMode()
-	else
-	
-		if healthConnection then
-			healthConnection:Disconnect()
-			healthConnection = nil
-		end
+		local char = player.Character or player.CharacterAdded:Wait()
+		local humanoid = char:WaitForChild("Humanoid")
+
+		-- Protection : si le joueur perd de la vie, on la remet
+		humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+			if godMode and humanoid.Health < humanoid.MaxHealth then
+				humanoid.Health = humanoid.MaxHealth
+			end
+		end)
 	end
 end)
+-- BOUTON Infinite Stamina
+local staminaBtn = Instance.new("TextButton", frame)
+staminaBtn.Text = "Infinite Stamina(for emergencyhamburg)"
+staminaBtn.Size = UDim2.new(0.8, 0, 0, 35)
+staminaBtn.Position = UDim2.new(0.1, 0, 0, 620)
+staminaBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 255)
+staminaBtn.TextColor3 = Color3.new(1, 1, 1)
+staminaBtn.Font = Enum.Font.GothamBold
+staminaBtn.TextScaled = true
+Instance.new("UICorner", staminaBtn).CornerRadius = UDim.new(0, 8)
+
+staminaBtn.MouseButton1Click:Connect(function()
+	local function Dialog(info)
+		local confirm = Instance.new("TextLabel", frame)
+		confirm.Text = info.Title .. "\n\n" .. info.Content
+		confirm.Size = UDim2.new(0.8, 0, 0, 120)
+		confirm.Position = UDim2.new(0.1, 0, 0, 340)
+		confirm.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+		confirm.TextColor3 = Color3.new(1,1,1)
+		confirm.Font = Enum.Font.Gotham
+		confirm.TextScaled = true
+		confirm.TextWrapped = true
+		Instance.new("UICorner", confirm).CornerRadius = UDim.new(0, 8)
+
+		local okBtn = Instance.new("TextButton", frame)
+		okBtn.Text = "Confirm"
+		okBtn.Size = UDim2.new(0.35, 0, 0, 30)
+		okBtn.Position = UDim2.new(0.1, 0, 0, 470)
+		okBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+		okBtn.TextColor3 = Color3.new(1, 1, 1)
+		okBtn.Font = Enum.Font.GothamBold
+		okBtn.TextScaled = true
+		Instance.new("UICorner", okBtn).CornerRadius = UDim.new(0, 6)
+
+		okBtn.MouseButton1Click:Connect(function()
+			if not getgenv().iusduajsn then
+				pcall(function()
+					for i, v in pairs(getgc(true)) do
+						if type(v) == "function" and getinfo(v).name == "setStamina" then
+							func = v
+						end
+					end
+					hookfunction(func, function(...)
+						local args = {...}
+						return args[1], math.huge
+					end)
+				end)
+				getgenv().iusduajsn = true
+			end
+			okBtn:Destroy()
+			confirm:Destroy()
+		end)
+	end
+
+	Dialog({
+		Title = "Warning",
+		Content = "-This Option Can't Be UnDone!\n-If There Is No Thing Applied This Means Your Executor Is Ass(:",
+	})
+end)
+
