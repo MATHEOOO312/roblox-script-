@@ -436,34 +436,105 @@ resetBtn.MouseButton1Click:Connect(function()
 		humanoid.Health = 0
 	end
 end)
-local godMode = false
-local godBtn = Instance.new("TextButton", frame)
-godBtn.Text = "God Mode (Beta) : OFF"
-godBtn.Size = UDim2.new(0.8, 0, 0, 35)
-godBtn.Position = UDim2.new(0.1, 0, 0, 530) -- Ajuste si nécessaire
-godBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-godBtn.TextColor3 = Color3.new(1, 1, 1)
-godBtn.Font = Enum.Font.GothamBold
-godBtn.TextScaled = true
-Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 8)
 
-godBtn.MouseButton1Click:Connect(function()
-	godMode = not godMode
-	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
 
-	if godMode then
-		local char = player.Character or player.CharacterAdded:Wait()
-		local humanoid = char:WaitForChild("Humanoid")
+local espEnabled = false
+local espFolder = Instance.new("Folder", game.CoreGui)
+espFolder.Name = "MATHEOOO_ESP"
 
-		-- Protection : si le joueur perd de la vie, on la remet
-		humanoid:GetPropertyChangedSignal("Health"):Connect(function()
-			if godMode and humanoid.Health < humanoid.MaxHealth then
-				humanoid.Health = humanoid.MaxHealth
+local function createESP(player)
+	if player == LocalPlayer then return end
+	local character = player.Character
+	if not character then return end
+	local head = character:FindFirstChild("Head")
+	if not head then return end
+	if espFolder:FindFirstChild(player.Name) then return end
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = player.Name
+	billboard.Size = UDim2.new(0, 100, 0, 30)
+	billboard.StudsOffset = Vector3.new(0, 3, 0)
+	billboard.AlwaysOnTop = true
+	billboard.MaxDistance = 999999 -- ✅ très loin
+	billboard.Parent = espFolder
+	billboard.Adornee = head
+
+	local label = Instance.new("TextLabel", billboard)
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.TextScaled = true
+	label.Font = Enum.Font.GothamBold
+	label.Text = player.Name
+	label.TextColor3 = Color3.new(1,1,1)
+end
+
+local function removeESP()
+	for _, gui in ipairs(espFolder:GetChildren()) do
+		gui:Destroy()
+	end
+end
+
+local function updateESP()
+	for _, gui in ipairs(espFolder:GetChildren()) do
+		local plr = Players:FindFirstChild(gui.Name)
+		if plr and plr.Character and plr.Character:FindFirstChild("Head") then
+			local head = plr.Character.Head
+			local dist = (head.Position - LocalPlayer.Character.Head.Position).Magnitude
+			local label = gui:FindFirstChildOfClass("TextLabel")
+
+			if dist <= 50 then
+				label.TextColor3 = Color3.fromRGB(0, 255, 0) -- Vert
+			elseif dist <= 150 then
+				label.TextColor3 = Color3.fromRGB(255, 255, 0) -- Jaune
+			else
+				label.TextColor3 = Color3.fromRGB(255, 0, 0) -- Rouge
 			end
+
+			label.Text = plr.Name .. " [" .. math.floor(dist) .. "m]"
+		end
+	end
+end
+
+-- Bouton ESP
+local espBtn = Instance.new("TextButton", frame)
+espBtn.Text = "ESP : OFF"
+espBtn.Size = UDim2.new(0.8, 0, 0, 35)
+espBtn.Position = UDim2.new(0.1, 0, 0, 660)
+espBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+espBtn.TextColor3 = Color3.new(1, 1, 1)
+espBtn.Font = Enum.Font.GothamBold
+espBtn.TextScaled = true
+Instance.new("UICorner", espBtn).CornerRadius = UDim.new(0, 8)
+
+espBtn.MouseButton1Click:Connect(function()
+	espEnabled = not espEnabled
+	if espEnabled then
+		espBtn.Text = "ESP : ON"
+		espBtn.BackgroundColor3 = Color3.fromRGB(80, 255, 80)
+		for _, plr in ipairs(Players:GetPlayers()) do
+			createESP(plr)
+		end
+	else
+		espBtn.Text = "ESP : OFF"
+		espBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+		removeESP()
+	end
+end)
+
+Players.PlayerAdded:Connect(function(plr)
+	if espEnabled then
+		plr.CharacterAdded:Connect(function()
+			wait(1)
+			createESP(plr)
 		end)
 	end
 end)
--- BOUTON Infinite Stamina
+
+RunService.RenderStepped:Connect(function()
+	if espEnabled then
+		updateESP()
+	end
+end)
 local staminaBtn = Instance.new("TextButton", frame)
 staminaBtn.Text = "Infinite Stamina(for emergencyhamburg)"
 staminaBtn.Size = UDim2.new(0.8, 0, 0, 35)
@@ -523,3 +594,116 @@ staminaBtn.MouseButton1Click:Connect(function()
 	})
 end)
 
+local godMode = false
+local godBtn = Instance.new("TextButton", frame)
+godBtn.Text = "God Mode (Beta) : OFF"
+godBtn.Size = UDim2.new(0.8, 0, 0, 35)
+godBtn.Position = UDim2.new(0.1, 0, 0, 530)
+godBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+godBtn.TextColor3 = Color3.new(1, 1, 1)
+godBtn.Font = Enum.Font.GothamBold
+godBtn.TextScaled = true
+Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 8)
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+
+local function disableFallDamage()
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+
+	humanoid.StateChanged:Connect(function(_, new)
+		if godMode and new == Enum.HumanoidStateType.Freefall then
+			humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+		end
+	end)
+end
+
+godBtn.MouseButton1Click:Connect(function()
+	godMode = not godMode
+	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
+
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+
+	if godMode then
+
+		humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+			if godMode and humanoid.Health < humanoid.MaxHealth then
+				humanoid.Health = humanoid.MaxHealth
+			end
+		end)
+
+		disableFallDamage()
+
+
+		player.CharacterAdded:Connect(function()
+			wait(1)
+			if godMode then
+				disableFallDamage()
+			end
+		end)
+	end
+end)
+
+local closeBtn = Instance.new("TextButton", frame)
+closeBtn.Text = "X"
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextScaled = true
+closeBtn.ZIndex = 10
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+
+closeBtn.MouseButton1Click:Connect(function()
+	local confirmGui = Instance.new("ScreenGui", game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"))
+	confirmGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	local confirmFrame = Instance.new("Frame", confirmGui)
+	confirmFrame.Size = UDim2.new(0, 300, 0, 150)
+	confirmFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
+	confirmFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	Instance.new("UICorner", confirmFrame).CornerRadius = UDim.new(0, 10)
+
+	local label = Instance.new("TextLabel", confirmFrame)
+	label.Text = "Are you sure you want to close the script?"
+	label.Size = UDim2.new(1, -20, 0, 60)
+	label.Position = UDim2.new(0, 10, 0, 10)
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.BackgroundTransparency = 1
+	label.TextWrapped = true
+	label.Font = Enum.Font.GothamBold
+	label.TextScaled = true
+
+	local yesBtn = Instance.new("TextButton", confirmFrame)
+	yesBtn.Text = "Yes"
+	yesBtn.Size = UDim2.new(0.4, 0, 0, 35)
+	yesBtn.Position = UDim2.new(0.1, 0, 1, -45)
+	yesBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+	yesBtn.TextColor3 = Color3.new(1, 1, 1)
+	yesBtn.Font = Enum.Font.GothamBold
+	yesBtn.TextScaled = true
+	Instance.new("UICorner", yesBtn).CornerRadius = UDim.new(0, 6)
+
+	local noBtn = Instance.new("TextButton", confirmFrame)
+	noBtn.Text = "No"
+	noBtn.Size = UDim2.new(0.4, 0, 0, 35)
+	noBtn.Position = UDim2.new(0.5, 20, 1, -45)
+	noBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+	noBtn.TextColor3 = Color3.new(1, 1, 1)
+	noBtn.Font = Enum.Font.GothamBold
+	noBtn.TextScaled = true
+	Instance.new("UICorner", noBtn).CornerRadius = UDim.new(0, 6)
+
+	yesBtn.MouseButton1Click:Connect(function()
+		frame.Visible = false
+		confirmGui:Destroy()
+	end)
+
+	noBtn.MouseButton1Click:Connect(function()
+		confirmGui:Destroy()
+	end)
+end)
