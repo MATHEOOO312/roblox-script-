@@ -360,7 +360,7 @@ local aimbot = false
 local aimbotBtn = Instance.new("TextButton", frame)
 aimbotBtn.Text = "Aimbot : OFF"
 aimbotBtn.Size = UDim2.new(0.8, 0, 0, 35)
-aimbotBtn.Position = UDim2.new(0.1, 0, 0, 440)  -- juste sous le Rainbow Body
+aimbotBtn.Position = UDim2.new(0.1, 0, 0, 440)  -- juste sous le 
 aimbotBtn.BackgroundColor3 = Color3.fromRGB(200, 100, 255)
 aimbotBtn.TextColor3 = Color3.new(1, 1, 1)
 aimbotBtn.Font = Enum.Font.GothamBold
@@ -372,9 +372,6 @@ aimbotBtn.MouseButton1Click:Connect(function()
     aimbotBtn.Text = "Aimbot : " .. (aimbot and "ON" or "OFF")
   
 end)
-
-
-
 
 local teleportBtn = Instance.new("TextButton", frame)
 teleportBtn.Text = "Teleport to Player"
@@ -410,7 +407,6 @@ local function teleportToPlayer(targetName)
     end
 end
 
-
 teleportBtn.MouseButton1Click:Connect(function()
     local targetName = playerNameBox.Text
     if targetName ~= "" then
@@ -420,7 +416,7 @@ teleportBtn.MouseButton1Click:Connect(function()
     end
 end)
 local resetBtn = Instance.new("TextButton", frame)
-resetBtn.Text = "Reset Character"
+resetBtn.Text = "ResetCharacter"
 resetBtn.Size = UDim2.new(0.8, 0, 0, 35)
 resetBtn.Position = UDim2.new(0.1, 0, 0, 580)
 resetBtn.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
@@ -438,7 +434,7 @@ resetBtn.MouseButton1Click:Connect(function()
 end)
 local godMode = false
 local godBtn = Instance.new("TextButton", frame)
-godBtn.Text = "God Mode (Beta) : OFF"
+godBtn.Text = "God Mod (Beta) : OFF"
 godBtn.Size = UDim2.new(0.8, 0, 0, 35)
 godBtn.Position = UDim2.new(0.1, 0, 0, 630)
 godBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
@@ -447,18 +443,33 @@ godBtn.Font = Enum.Font.GothamBold
 godBtn.TextScaled = true
 Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 8)
 
-local function applyGodMode()
-	local char = player.Character
-	if not char then return end
 
-	local humanoid = char:FindFirstChild("Humanoid")
+local healthConnection = nil
+
+local function applyGodMode()
+	local char = player.Character or player.CharacterAdded:Wait()
+	local humanoid = char:FindFirstChildWhichIsA("Humanoid")
 	if not humanoid then return end
 
-	humanoid:GetPropertyChangedSignal("Health"):Connect(function()
-		if godMode and humanoid.Health < humanoid.MaxHealth then
-			humanoid.Health = humanoid.MaxHealth
+	--
+	if healthConnection then
+		healthConnection:Disconnect()
+	end
+
+	-- Remet la vie au max en boucle tant que God Mode actif
+	healthConnection = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+		if godMode then
+			task.wait() -- Petite attente pour éviter bug visuel
+			if humanoid.Health < humanoid.MaxHealth then
+				humanoid.Health = humanoid.MaxHealth
+			end
 		end
 	end)
+
+
+	if godMode and humanoid.Health < humanoid.MaxHealth then
+		humanoid.Health = humanoid.MaxHealth
+	end
 end
 
 player.CharacterAdded:Connect(function()
@@ -470,7 +481,14 @@ end)
 
 godBtn.MouseButton1Click:Connect(function()
 	godMode = not godMode
-	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
-	if godMode then applyGodMode() end
+	godBtn.Text = "God Mod (Beta) : " .. (godMode and "ON" or "OFF")
+	if godMode then
+		applyGodMode()
+	else
+	
+		if healthConnection then
+			healthConnection:Disconnect()
+			healthConnection = nil
+		end
+	end
 end)
-
