@@ -19,7 +19,7 @@ gui.Name = "MATHEOOO312_GUI"
 gui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 400, 0, 700)
+frame.Size = UDim2.new(0, 400, 0, 750)
 frame.Position = UDim2.new(0, 20, 0.5, -250)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BorderSizePixel = 0
@@ -154,33 +154,7 @@ player.CharacterAdded:Connect(function(char)
 	humanoid.JumpPower = jumpPower
 end)
 
-local godMode = false
-local godBtn = Instance.new("TextButton", frame)
-godBtn.Text = "God Mode (Beta) : OFF"
-godBtn.Size = UDim2.new(0.8, 0, 0, 35)
-godBtn.Position = UDim2.new(0.1, 0, 0, 530) -- Ajuste si nécessaire
-godBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-godBtn.TextColor3 = Color3.new(1, 1, 1)
-godBtn.Font = Enum.Font.GothamBold
-godBtn.TextScaled = true
-Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 8)
 
-godBtn.MouseButton1Click:Connect(function()
-	godMode = not godMode
-	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
-
-	if godMode then
-		local char = player.Character or player.CharacterAdded:Wait()
-		local humanoid = char:WaitForChild("Humanoid")
-
-
-		humanoid:GetPropertyChangedSignal("Health"):Connect(function()
-			if godMode and humanoid.Health < humanoid.MaxHealth then
-				humanoid.Health = humanoid.MaxHealth
-			end
-		end)
-	end
-end)
 
 local noclip = false
 local noclipBtn = Instance.new("TextButton", frame)
@@ -594,58 +568,6 @@ staminaBtn.MouseButton1Click:Connect(function()
 	})
 end)
 
-local godMode = false
-local godBtn = Instance.new("TextButton", frame)
-godBtn.Text = "God Mode (Beta) : OFF"
-godBtn.Size = UDim2.new(0.8, 0, 0, 35)
-godBtn.Position = UDim2.new(0.1, 0, 0, 530)
-godBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-godBtn.TextColor3 = Color3.new(1, 1, 1)
-godBtn.Font = Enum.Font.GothamBold
-godBtn.TextScaled = true
-Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 8)
-
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
-
-local function disableFallDamage()
-	local character = player.Character or player.CharacterAdded:Wait()
-	local humanoid = character:WaitForChild("Humanoid")
-
-	humanoid.StateChanged:Connect(function(_, new)
-		if godMode and new == Enum.HumanoidStateType.Freefall then
-			humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-		end
-	end)
-end
-
-godBtn.MouseButton1Click:Connect(function()
-	godMode = not godMode
-	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
-
-	local character = player.Character or player.CharacterAdded:Wait()
-	local humanoid = character:WaitForChild("Humanoid")
-
-	if godMode then
-
-		humanoid:GetPropertyChangedSignal("Health"):Connect(function()
-			if godMode and humanoid.Health < humanoid.MaxHealth then
-				humanoid.Health = humanoid.MaxHealth
-			end
-		end)
-
-		disableFallDamage()
-
-
-		player.CharacterAdded:Connect(function()
-			wait(1)
-			if godMode then
-				disableFallDamage()
-			end
-		end)
-	end
-end)
 
 local closeBtn = Instance.new("TextButton", frame)
 closeBtn.Text = "X"
@@ -706,4 +628,113 @@ closeBtn.MouseButton1Click:Connect(function()
 	noBtn.MouseButton1Click:Connect(function()
 		confirmGui:Destroy()
 	end)
+end)	
+
+local godMode = false
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Création du bouton God Mode
+local godBtn = Instance.new("TextButton", frame)
+godBtn.Text = "God Mode (Beta) : OFF"
+godBtn.Size = UDim2.new(0.8, 0, 0, 35)
+godBtn.Position = UDim2.new(0.1, 0, 0, 530)
+godBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+godBtn.TextColor3 = Color3.new(1, 1, 1)
+godBtn.Font = Enum.Font.GothamBold
+godBtn.TextScaled = true
+Instance.new("UICorner", godBtn).CornerRadius = UDim.new(0, 8)
+
+local healthConnection = nil
+local fallConnection = nil
+
+-- Fonction pour désactiver les dégâts de chute
+local function disableFallDamage(humanoid)
+	if fallConnection then fallConnection:Disconnect() end
+	fallConnection = humanoid.StateChanged:Connect(function(_, new)
+		if godMode and new == Enum.HumanoidStateType.Freefall then
+			humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+		end
+	end)
+end
+
+-- Active le God Mode
+local function activateGodMode()
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+
+	-- Soigne uniquement quand la vie baisse
+	if healthConnection then healthConnection:Disconnect() end
+	healthConnection = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+		if godMode and humanoid.Health < humanoid.MaxHealth then
+			humanoid.Health = humanoid.MaxHealth
+		end
+	end)
+
+	disableFallDamage(humanoid)
+end
+
+-- Désactive le God Mode
+local function deactivateGodMode()
+	if healthConnection then healthConnection:Disconnect() healthConnection = nil end
+	if fallConnection then fallConnection:Disconnect() fallConnection = nil end
+end
+
+-- Clic sur le bouton
+godBtn.MouseButton1Click:Connect(function()
+	godMode = not godMode
+	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
+
+	if godMode then
+		activateGodMode()
+	else
+		deactivateGodMode()
+	end
+end)
+
+-- Si le joueur respawn avec le God Mode actif
+player.CharacterAdded:Connect(function()
+	wait(1)
+	if godMode then
+		activateGodMode()
+	end
+end)
+local antiAfkEnabled = false
+local connection = nil
+
+local antiAfkBtn = Instance.new("TextButton", frame)
+antiAfkBtn.Text = "Anti-AFK : OFF"
+antiAfkBtn.Size = UDim2.new(0.8, 0, 0, 35)
+antiAfkBtn.Position = UDim2.new(0.1, 0, 0, 700) -- ajuste la position si nécessaire
+antiAfkBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+antiAfkBtn.TextColor3 = Color3.new(1, 1, 1)
+antiAfkBtn.Font = Enum.Font.GothamBold
+antiAfkBtn.TextScaled = true
+Instance.new("UICorner", antiAfkBtn).CornerRadius = UDim.new(0, 8)
+
+antiAfkBtn.MouseButton1Click:Connect(function()
+	antiAfkEnabled = not antiAfkEnabled
+	antiAfkBtn.Text = "Anti-AFK : " .. (antiAfkEnabled and "ON" or "OFF")
+
+	if antiAfkEnabled then
+		connection = game:GetService("Players").LocalPlayer.Idled:Connect(function()
+			local VirtualUser = game:GetService("VirtualUser")
+			VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+			task.wait(1)
+			VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+
+			-- Notification dans le chat
+			game.StarterGui:SetCore("ChatMakeSystemMessage", {
+				Text = "[Anti-AFK] AFK blocked at " .. os.date("%X");
+				Color = Color3.fromRGB(100, 255, 100);
+				Font = Enum.Font.Gotham;
+				FontSize = Enum.FontSize.Size24;
+			})
+		end)
+	else
+		if connection then
+			connection:Disconnect()
+			connection = nil
+		end
+	end
 end)
