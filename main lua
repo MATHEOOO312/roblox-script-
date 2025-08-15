@@ -429,7 +429,7 @@ local function createESP(player)
 	billboard.Size = UDim2.new(0, 100, 0, 30)
 	billboard.StudsOffset = Vector3.new(0, 3, 0)
 	billboard.AlwaysOnTop = true
-	billboard.MaxDistance = 999999 -- ✅ très loin
+	billboard.MaxDistance = 999999 
 	billboard.Parent = espFolder
 	billboard.Adornee = head
 
@@ -469,7 +469,7 @@ local function updateESP()
 	end
 end
 
--- Bouton ESP
+
 local espBtn = Instance.new("TextButton", frame)
 espBtn.Text = "ESP : OFF"
 espBtn.Size = UDim2.new(0.8, 0, 0, 35)
@@ -634,7 +634,7 @@ local godMode = false
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- Création du bouton God Mode
+
 local godBtn = Instance.new("TextButton", frame)
 godBtn.Text = "God Mode (Beta) : OFF"
 godBtn.Size = UDim2.new(0.8, 0, 0, 35)
@@ -658,7 +658,7 @@ local function disableFallDamage(humanoid)
 	end)
 end
 
--- Active le God Mode
+
 local function activateGodMode()
 	local character = player.Character or player.CharacterAdded:Wait()
 	local humanoid = character:WaitForChild("Humanoid")
@@ -674,13 +674,13 @@ local function activateGodMode()
 	disableFallDamage(humanoid)
 end
 
--- Désactive le God Mode
+
 local function deactivateGodMode()
 	if healthConnection then healthConnection:Disconnect() healthConnection = nil end
 	if fallConnection then fallConnection:Disconnect() fallConnection = nil end
 end
 
--- Clic sur le bouton
+
 godBtn.MouseButton1Click:Connect(function()
 	godMode = not godMode
 	godBtn.Text = "God Mode (Beta) : " .. (godMode and "ON" or "OFF")
@@ -692,7 +692,7 @@ godBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Si le joueur respawn avec le God Mode actif
+
 player.CharacterAdded:Connect(function()
 	wait(1)
 	if godMode then
@@ -723,7 +723,7 @@ antiAfkBtn.MouseButton1Click:Connect(function()
 			task.wait(1)
 			VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
 
-			-- Notification dans le chat
+			
 			game.StarterGui:SetCore("ChatMakeSystemMessage", {
 				Text = "[Anti-AFK] AFK blocked at " .. os.date("%X");
 				Color = Color3.fromRGB(100, 255, 100);
